@@ -27,37 +27,7 @@ def safe_generate_response(prompt, retries=3, delay=5):
             time.sleep(delay)
     return None
 
-
-# === STEP 2: Extract text & images from PDF ===
-# def extract_pdf_content(pdf_path, image_output_dir="pdf_images"):
-#     os.makedirs(image_output_dir, exist_ok=True)
-#     doc = fitz.open(pdf_path)
-#     combined_pages = []
-
-#     for page_num in range(len(doc)):
-#         page = doc[page_num]
-#         text = page.get_text().strip()
-#         image_path = None
-
-#         images = page.get_images(full=True)
-#         if images:
-#             xref = images[0][0]  # First image on page
-#             pix = fitz.Pixmap(doc, xref)
-#             if pix.n > 4:
-#                 pix = fitz.Pixmap(fitz.csRGB, pix)
-#             img_filename = f"page_{page_num+1}.png"
-#             img_full_path = os.path.join(image_output_dir, img_filename)
-#             pix.save(img_full_path)
-#             pix = None
-#             image_path = img_full_path
-
-#         combined_pages.append({
-#             "text": text,
-#             "image_path": image_path
-#         })
-#     return combined_pages
-
-def extract_pdf_content(pdf_path, image_output_dir="D:\\temp\\pdf_images"):
+def extract_pdf_content(pdf_path, image_output_dir="pdf_images"):
     os.makedirs(image_output_dir, exist_ok=True)
     doc = fitz.open(pdf_path)
     combined_pages = []
@@ -166,58 +136,6 @@ def convert_gemini_response_to_list(response):
         print(f"Unexpected error: {e}")
         return None
 
-# === STEP 3: Ask Gemini to generate rich slide layouts ===
-# def generate_slide_data(content_blocks):
-#     # Combine text per section, keeping track of image context
-#     sections = []
-#     for i, block in enumerate(content_blocks):
-#         if block["text"]:
-#             entry = {
-#                 "page": i + 1,
-#                 "text": block["text"],
-#                 "image_path": block["image_path"]
-#             }
-#             sections.append(entry)
-
-#     # Build prompt for Gemini
-#     sections_text = "\n\n".join([
-#         f"Page {sec['page']}:\n{sec['text']}" +
-#         (f"\n[IMAGE_PATH: {sec['image_path']}]" if sec['image_path'] else "")
-#         for sec in sections
-#     ])
-
-#     prompt = f"""
-# You are a presentation expert.
-
-# Convert the following document into a Microsoft PowerPoint presentation using various layouts based on content type.
-
-# Supported layouts:
-# - Title Slide
-# - Section Header
-# - Title and Content
-# - Two Content
-# - Comparison
-# - Picture with Caption
-# - Title and Table
-
-# Return a JSON list of slides like this:
-# {{
-#   "layout": "Title and Content",
-#   "title": "Blockchain Basics",
-#   "content": ["Definition", "How it works"],
-#   "image_path": "/path/to/image.png"  ← Only include this if image was present on that page
-# }}
-
-# Only include image_path if it was explicitly mentioned as [IMAGE_PATH: ...] in the source.
-
-# Here is the source:
-# \"\"\"{sections_text}\"\"\"
-# """
-#     response = model.generate_content(prompt)
-#     print(type(response))
-#     convert_gemini_response_to_list(response)
-#     print(type(convert_gemini_response_to_list(response)))
-#     return response.text
 
 def chunk_content(content_blocks, chunk_size=3):
     return [content_blocks[i:i + chunk_size] for i in range(0, len(content_blocks), chunk_size)]
@@ -332,6 +250,26 @@ Here is the source:
     return all_slides
 
 # === STEP 4: Run full pipeline ===
+import os
+
+# def convert_pdf_to_slide_json(pdf_path):
+#     print("📄 Extracting text & images...")
+#     content = extract_pdf_content(pdf_path)
+
+#     print("🧠 Asking Gemini to build slides...")
+#     slide_data = generate_slide_data(content)
+
+#     # Dynamically name output JSON
+#     base_name = os.path.splitext(os.path.basename(pdf_path))[0]
+#     output_json_path = os.path.join("temp_json", f"{base_name}_slides.json")
+#     os.makedirs("temp_json", exist_ok=True)
+
+#     print(f"💾 Saving slide data to {output_json_path}...")
+#     with open(output_json_path, "w", encoding="utf-8") as f:
+#         json.dump(slide_data, f, indent=2, ensure_ascii=False)
+
+#     print("✅ Done.")
+############################## older #############################
 def convert_pdf_to_slide_json(pdf_path, output_json_path="slides.json"):
     print("📄 Extracting text & images...")
     content = extract_pdf_content(pdf_path)
@@ -346,5 +284,5 @@ def convert_pdf_to_slide_json(pdf_path, output_json_path="slides.json"):
     print("✅ Done.")
 
 # === USAGE ===
-pdf_path = "testing_uploads/revised_guidelines_css_pt.pdf"
+pdf_path = "C:\\Users\\HP\\Downloads\\01_narayani reports.pdf"
 convert_pdf_to_slide_json(pdf_path)

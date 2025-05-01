@@ -2,6 +2,27 @@ from pptx.enum.shapes import MSO_SHAPE
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 
+# Global primary color (default blue)
+PRIMARY_COLOR = (39, 68, 114)
+
+def set_primary_color(color_name):
+    """Set primary color based on user input."""
+    global PRIMARY_COLOR
+    color_map = {
+        "blue": (39, 68, 114),
+        "red": (220, 20, 60),
+        "green": (34, 139, 34),
+        "yellow": (255, 215, 0),
+        "orange": (255, 140, 0),
+        "purple": (128, 0, 128),
+        "gray": (128, 128, 128)
+    }
+    color_name = color_name.lower()
+    if color_name in color_map:
+        PRIMARY_COLOR = color_map[color_name]
+    else:
+        print("Invalid color selected. Using default blue.")
+
 def add_layout_styled_background(prs, slide, layout_type):
     slide_width = prs.slide_width
     slide_height = prs.slide_height
@@ -21,7 +42,6 @@ def add_layout_styled_background(prs, slide, layout_type):
         card_top = int((slide_height - card_height) / 1)
 
         card = slide.shapes.add_shape(
-            # MSO_SHAPE.ROUNDED_RECTANGLE, card_left, card_top, card_width, card_height
             MSO_SHAPE.RECTANGLE, card_left, card_top, card_width, card_height
         )
         card.fill.solid()
@@ -62,31 +82,31 @@ def add_layout_styled_background(prs, slide, layout_type):
 
     # Style each layout uniquely
     if layout_type == "title_slide":
-        add_background_fill((39, 68, 114))  # light_color
+        add_background_fill(PRIMARY_COLOR)
         add_center_card((234, 239, 242), 200)
 
     elif layout_type == "title_only":
         add_background_fill((234, 239, 242))
 
     elif layout_type == "title_and_content":
-        add_background_fill((234, 239, 242))  # Slightly lighter
-        add_bottom_stripe((39, 68, 114)) # dark color here
+        add_background_fill((234, 239, 242))
+        add_bottom_stripe(PRIMARY_COLOR)
 
     elif layout_type == "section_header":
         add_background_fill((234, 239, 242))
         top_half = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, slide_width, slide_height // 2)
         top_half.fill.solid()
-        top_half.fill.fore_color.rgb = RGBColor(39, 68, 114)
+        top_half.fill.fore_color.rgb = RGBColor(255, 68, 114)
         top_half.line.fill.background()
         slide.shapes._spTree.remove(top_half._element)
         slide.shapes._spTree.insert(3, top_half._element)
 
     elif layout_type == "two_content":
-        add_background_fill((39, 68, 114))
+        add_background_fill(PRIMARY_COLOR)
         add_side_cards((234, 239, 242), (234, 239, 242), opacity=180)
 
     elif layout_type == "comparison":
-        add_background_fill((39, 68, 114))
+        add_background_fill(PRIMARY_COLOR)
         add_side_cards((234, 239, 242), (234, 239, 242), opacity=180)
 
     elif layout_type in ["content_with_caption", "image_with_caption"]:
@@ -100,12 +120,11 @@ def add_layout_styled_background(prs, slide, layout_type):
             int(slide_height * 0.7)
         )
         bar.fill.solid()
-        bar.fill.fore_color.rgb = RGBColor(39, 68, 114)
+        bar.fill.fore_color.rgb = RGBColor(*PRIMARY_COLOR)
         bar.line.fill.background()
         slide.shapes._spTree.remove(bar._element)
         slide.shapes._spTree.insert(3, bar._element)
 
-        # 🔧 Move and resize text box
         for shape in slide.shapes:
             if not shape.has_text_frame:
                 continue
@@ -115,7 +134,6 @@ def add_layout_styled_background(prs, slide, layout_type):
                 shape.width = int(slide_width * 0.5)
                 shape.height = int(slide_height * 0.6)
 
-        # 🔧 Move and resize image box
         for shape in slide.shapes:
             if shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
                 shape.left = int(slide_width * 0.6)
